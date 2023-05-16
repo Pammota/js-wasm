@@ -1,8 +1,9 @@
 
 document.getElementById("res-hold").style.visibility = "hidden";
 
-async function getWasm(nr1, nr2, selector) {
+async function getWasm() {
   const wasmFile = await fetch("http://localhost:3000/wasm/test.wasm");
+
   const wasm = await WebAssembly.instantiateStreaming(wasmFile, {
     js: {
       log: (x) => console.log(x),
@@ -14,8 +15,15 @@ async function getWasm(nr1, nr2, selector) {
       },
     },
   });
-  wasm.instance.exports.add2nrOpt(nr1,nr2,selector);
+
+  return wasm.instance.exports.add2nrOpt;
 }
+
+let add2nrOpt;
+getWasm().then((func)=> {
+  add2nrOpt = func;
+});
+
 
 const selectorToInt = (selector) => { 
   if(selector === "log") return 0;
@@ -30,6 +38,13 @@ const onButtonPress = () => {
   if(selector !==2)
     document.getElementById("res-hold").style.visibility = "hidden";
 
-  getWasm(nr1, nr2, selector);
+  add2nrOpt(nr1,nr2,selector);
+}
+
+const recompile = () => {
+  getWasm().then((func)=> {
+    add2nrOpt = func;
+  });
+  console.log("Recompiled WAT file.");
 }
 
